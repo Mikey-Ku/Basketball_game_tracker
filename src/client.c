@@ -1,9 +1,9 @@
-#include <stdio.h>        // printf(), perror()
-#include <stdlib.h>       // exit()
-#include <string.h>       // memset(), strlen()
-#include <unistd.h>       // close()
-#include <arpa/inet.h>    // inet_addr(), htons(), sockaddr_in
-#include <sys/socket.h>   // socket(), connect(), send(), recv()
+#include <stdio.h>     
+#include <stdlib.h>     
+#include <string.h>
+#include <unistd.h>       
+#include <arpa/inet.h> 
+#include <sys/socket.h>  
 
 int main() 
 {
@@ -25,15 +25,28 @@ int main()
     }
 
     printf("Connected to the server!\n");
-    char message[] = "WHATTT UPPP";
+
+    while (1) {
+    char message[1024];
+
+    printf("> ");
+    fgets(message, sizeof(message), stdin);
+
+    message[strcspn(message, "\n")] = '\0';
+
+    if (strcmp(message, "quit") == 0) {
+        break;
+    }
+
     send(sock, message, strlen(message), 0);
 
     char buffer[1024];
-    int bytes = recv(sock, buffer, sizeof(buffer), 0);
-
+    int bytes = recv(sock, buffer, sizeof(buffer) - 1, 0);
     buffer[bytes] = '\0';
 
-    printf("Server says: %s\n", buffer);
+    printf("Server: %s\n", buffer);
+
+    }
 
     close(sock);
 

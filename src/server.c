@@ -1,9 +1,9 @@
-#include <stdio.h>        // printf(), perror()
-#include <stdlib.h>       // exit()
-#include <string.h>       // memset(), strlen()
-#include <unistd.h>       // close(), read(), write()
-#include <arpa/inet.h>    // inet_addr(), htons(), sockaddr_in
-#include <sys/socket.h>   // socket(), bind(), listen(), accept()
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 
 int main() {
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -34,16 +34,24 @@ int main() {
     printf("Client connected!\n");
 
     char buffer[1024];
-    int bytes = recv(client_fd, buffer, sizeof(buffer), 0);
+    while (1) {
+        int bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 
-    if (bytes < 0) {
-        perror("recv failed");
-        exit(1);
+        if (bytes < 0) {
+            perror("recv failed");
+            break;
+        }
+        if (bytes == 0) {
+            printf("Client disconnected.\n");
+            break;
+        }
+
+        buffer[bytes] = '\0';
+        printf("Received: %s\n", buffer);
+
+        send(client_fd, "GOT\n", 4, 0);
     }
 
-    buffer[bytes] = '\0';
-    printf("Received: %s\n", buffer);
-    send(client_fd, "NO\n", 3, 0);
     close(client_fd);
     close(server_fd);
     
