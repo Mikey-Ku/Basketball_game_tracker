@@ -15,6 +15,8 @@ typedef enum {
     CMD_BLOCK,
     CMD_TURNOVER,
     CMD_FOUL,
+    CMD_START_GAME,
+    CMD_END_GAME
 } CommandType;
 
 #endif

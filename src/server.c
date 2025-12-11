@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include "parser.h"
+#include "stats.h"
+#include "database.h"
 
 int main() {
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -25,6 +28,11 @@ int main() {
     exit(1);
     }
     printf("Server is listening on port 9000...\n");
+
+    if (!db_init("games.db")) {
+        fprintf(stderr, "Failed to open database. Exiting.\n");
+        return 1;
+    }
 
     int client_fd = accept(server_fd, NULL, NULL);
     if (client_fd < 0) {
@@ -48,12 +56,15 @@ int main() {
 
         buffer[bytes] = '\0';
         printf("Received: %s\n", buffer);
+        
+        parse_message(buffer);
 
-        send(client_fd, "GOT\n", 4, 0);
+        send(client_fd, "ACK\n", 4, 0);
     }
 
     close(client_fd);
     close(server_fd);
+    db_close();
     
     return 0;
 }

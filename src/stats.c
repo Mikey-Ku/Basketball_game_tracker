@@ -4,6 +4,8 @@
 
 static PlayerStats players[50];
 static int player_count = 0;
+static int game_active = 0;
+static int current_game_id = 0;
 
 PlayerStats* get_player(const char *name) {
     for (int i = 0; i < player_count; i++) {
@@ -34,6 +36,60 @@ PlayerStats* get_player(const char *name) {
 
     player_count++;
     return &players[player_count - 1];
+}
+
+void start_game() {
+    printf("\n=== STARTING NEW GAME ===\n");
+
+    for (int i = 0; i < player_count; i++) {
+        players[i].points = 0;
+        players[i].threes_made = 0;
+        players[i].twos_made = 0;
+        players[i].free_throws_made = 0;
+        players[i].rebounds = 0;
+        players[i].assists = 0;
+        players[i].steals = 0;
+        players[i].blocks = 0;
+        players[i].turnovers = 0;
+        players[i].fouls = 0;
+    }
+
+    player_count = 0;
+    game_active = 1;
+    current_game_id++;
+
+    printf("Game %d started.\n\n", current_game_id);
+}
+
+int is_game_active() {
+    return game_active;
+}
+
+void end_game() {
+    if (!game_active) {
+        printf("No game is currently active.\n");
+        return;
+    }
+
+    printf("\n=== GAME %d ENDED ===\n", current_game_id);
+    print_all_stats();
+
+
+    int game_active = 0;
+}
+
+void print_timestamp() {
+    time_t now = time(NULL);         
+    struct tm *t = localtime(&now);
+
+    printf("[%04d-%02d-%02d %02d:%02d:%02d] ",
+        t->tm_year + 1900,
+        t->tm_mon + 1,
+        t->tm_mday,
+        t->tm_hour,
+        t->tm_min,
+        t->tm_sec
+    );
 }
 
 static void update_percentages(PlayerStats *p) {

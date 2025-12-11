@@ -1,5 +1,7 @@
+#include <time.h>
 #ifndef STATS_H
 #define STATS_H
+
 
 typedef struct {
     char name[32];
@@ -39,6 +41,10 @@ void add_block(const char *player);
 void add_turnover(const char *player);
 void add_foul(const char *player);
 
+void start_game();
+void end_game();
+int is_game_active();
+void print_timestamp();
 void print_all_stats();
 
 #endif
