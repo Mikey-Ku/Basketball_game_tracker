@@ -16,7 +16,11 @@ typedef enum {
     CMD_TURNOVER,
     CMD_FOUL,
     CMD_START_GAME,
-    CMD_END_GAME
+    CMD_END_GAME,
+    CMD_GET_STATS,
+    CMD_LIST_GAMES,
+    CMD_GET_GAME_LOG,
+    CMD_PLAYER_STATS
 } CommandType;
 
 #endif

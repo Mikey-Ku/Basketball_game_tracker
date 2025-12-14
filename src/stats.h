@@ -3,8 +3,10 @@
 #define STATS_H
 
 
+#define MAX_PLAYER_NAME_LENGTH 32
+
 typedef struct {
-    char name[32];
+    char name[MAX_PLAYER_NAME_LENGTH];
     int points;
     float field_goal_percentage;
     int field_goals_made;
@@ -41,10 +43,14 @@ void add_block(const char *player);
 void add_turnover(const char *player);
 void add_foul(const char *player);
 
+char* get_game_stats(int game_id);
+
 void start_game();
 void end_game();
 int is_game_active();
+int get_current_game_id();
 void print_timestamp();
-void print_all_stats();
+void print_all_stats(char *buffer, size_t buffer_size);
+PlayerStats* get_player_stats(const char *name);
 
 #endif
