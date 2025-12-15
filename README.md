@@ -87,8 +87,8 @@ Connected to the server!
 
 
 ### Resources Used
-https://zetcode.com/db/sqlitec/
-https://sqlite.org/c3ref/exec.html
-Head First C Programming Chapter 11
-https://www.geeksforgeeks.org/c/time-h-header-file-in-c-with-examples/
-https://dev.to/jeffreythecoder/how-i-built-a-simple-http-server-from-scratch-using-c-739
+- https://zetcode.com/db/sqlitec/
+- https://sqlite.org/c3ref/exec.html
+- Head First C Programming Chapter 11
+- https://www.geeksforgeeks.org/c/time-h-header-file-in-c-with-examples/
+- https://dev.to/jeffreythecoder/how-i-built-a-simple-http-server-from-scratch-using-c-739
