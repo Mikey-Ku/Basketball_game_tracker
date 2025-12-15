@@ -20,36 +20,32 @@ int main() {
         perror("socket failed");
         exit(1);
     }
-    struct sockaddr_in server_addr; // Define server address
+    struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET; //address family (IPv4)
-    server_addr.sin_addr.s_addr = INADDR_ANY; //Any IP address
-    server_addr.sin_port = htons(PORT); // Port 9000
-    if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) { // Bind socket
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(PORT);
+    if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("bind failed");
         exit(1);
     }
-    if (listen(server_fd, LISTEN_BACKLOG) < 0) { // Listen for connections
+    if (listen(server_fd, LISTEN_BACKLOG) < 0) { 
         perror("listen failed");
         exit(1);
     }
     printf("Server is listening on port 9000...\n");
-
     if (!db_init("games.db")) { //check database initialization
         fprintf(stderr, "Failed to open database. Exiting.\n");
         return 1;
     }
-
-    int client_fd = accept(server_fd, NULL, NULL); // Accept a connection
+    int client_fd = accept(server_fd, NULL, NULL);
     if (client_fd < 0) {
         perror("accept failed");
         exit(1);
     }
-
     char buffer[BUFFER_SIZE];
     while (1) {
         int bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0); // Receive data
-
         if (bytes < 0) {
             perror("recv failed");
             break;
@@ -57,27 +53,22 @@ int main() {
         if (bytes == 0) {
             break;
         }
-
         buffer[bytes] = '\0';
 
         time_t now = time(NULL);
         char *time_str = ctime(&now);
-        time_str[strlen(time_str) - 1] = '\0'; // Remove trailing newline
+        time_str[strlen(time_str) - 1] = '\0';
 
         printf("[%s] Received command: %s\n", time_str, buffer);
-        fflush(stdout);
 
-        char *response = handle_message(buffer, now); // Process message
-
+        char *response = handle_message(buffer, now); 
             printf("[%s] Sent response: %s\n", time_str, response);
-            fflush(stdout);
             send(client_fd, response, strlen(response), 0);
             free(response);
         }
-
-    close(client_fd); // Close client connection
-    close(server_fd); // Close server socket
-    db_close(); // Close database
+    close(client_fd);
+    close(server_fd); 
+    db_close();
 
     return 0;
 }

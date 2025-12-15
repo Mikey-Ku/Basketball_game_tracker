@@ -12,7 +12,6 @@
 #define LARGE_RESPONSE_BUFFER 4096
 #define SMALL_RESPONSE_BUFFER 256
 
-// Helper function to create a timestamped response
 char *create_server_response(const char *command, const char *status, time_t timestamp) {
     char *response = malloc(SMALL_RESPONSE_BUFFER);
     char time_str[100];
@@ -21,7 +20,7 @@ char *create_server_response(const char *command, const char *status, time_t tim
     return response;
 }
 
-CommandType command_from_string(const char *cmd) { // Map string to CommandType enum
+CommandType command_from_string(const char *cmd) {
     if (strcmp(cmd, "MADE_3") == 0) { return CMD_MADE_3; }
     if (strcmp(cmd, "MISSED_3") == 0) { return CMD_MISSED_3; }
     if (strcmp(cmd, "MADE_2") == 0) { return CMD_MADE_2; }
@@ -43,9 +42,8 @@ CommandType command_from_string(const char *cmd) { // Map string to CommandType 
 }
 
 char* handle_message(char *msg, time_t timestamp) {
-    char *saveptr = NULL; 
-    char *command_str = strtok_r(msg, " ", &saveptr); 
-    char *player = strtok_r(NULL, " ", &saveptr);
+    char *command_str = strtok(msg, " "); 
+    char *player = strtok(NULL, " ");
     char original_msg[256];
     strncpy(original_msg, msg, sizeof(original_msg) -1);
 
@@ -60,7 +58,7 @@ char* handle_message(char *msg, time_t timestamp) {
         return create_server_response(original_msg, "Unknown command", timestamp);
     }
 
-    if (cmd == CMD_GET_STATS) { // Handle GET_STATS command
+    if (cmd == CMD_GET_STATS) {
         if (player == NULL) {
             return create_server_response(command_str, "Player name required", timestamp);
         }
@@ -78,7 +76,7 @@ char* handle_message(char *msg, time_t timestamp) {
         return response;
     }
 
-    if (cmd == CMD_LIST_GAMES) { // Handle LIST_GAMES command
+    if (cmd == CMD_LIST_GAMES) {
         Game *games = NULL;
         int num_games = 0;
         db_get_finished_games(&games, &num_games);
@@ -103,7 +101,6 @@ char* handle_message(char *msg, time_t timestamp) {
             return create_server_response(command_str, "Game ID required", timestamp);
         }
         int game_id = atoi(game_id_str);
-        
         GameEvent *events;
         int num_events;
         db_get_events_for_game(game_id, &events, &num_events);
@@ -114,10 +111,9 @@ char* handle_message(char *msg, time_t timestamp) {
 
         for (int i = 0; i < num_events; i++) {
             char line[SMALL_RESPONSE_BUFFER];
-            snprintf(line, sizeof(line), "[%s] %s: %s - %d points\n", events[i].timestamp, events[i].player, events[i].command, events[i].points);
+            snprintf(line, sizeof(line), "[%s] %s: %s\n", events[i].timestamp, events[i].player, events[i].command);
             strcat(response, line);
         }
-
         db_free_events(events, num_events);
         return response;
     }
@@ -183,13 +179,11 @@ char* handle_message(char *msg, time_t timestamp) {
             add_foul(player);
             break;
         default:
-            // Should not be reached due to CMD_INVALID check
             break;
     }
 
     if (cmd != CMD_INVALID) {
         db_insert_event(get_current_game_id(), player, command_str, points);
     }
-    
     return create_server_response(command_str, "Success", timestamp);
 }
