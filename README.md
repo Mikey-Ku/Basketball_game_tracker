@@ -70,17 +70,17 @@ Server is listening on port 9000...
 $ ./src/client
 Connected to the server!
 > START_GAME
-> MADE_3 Alice
-> ASSIST Bob
-> MADE_FT Alice
-> STATS Alice
+> MADE_3 MIKE
+> ASSIST BOB
+> MADE_FT BOB
+> STATS MIKE
 > END_GAME
 > LIST_GAMES
 > GET_GAME_LOG 1
 > quit
 ```
 
-## Data and persistence
+## Data and Storage
 - Events and game metadata are stored in `games.db` in the working directory where the server runs.
 - Each command is timestamped when it reaches the server.
 - If you want to start fresh, stop the server and delete `games.db` before restarting.
