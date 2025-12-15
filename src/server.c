@@ -74,7 +74,6 @@ int main() {
             send(client_fd, response, strlen(response), 0);
             free(response);
         }
-    }
 
     close(client_fd); // Close client connection
     close(server_fd); // Close server socket
