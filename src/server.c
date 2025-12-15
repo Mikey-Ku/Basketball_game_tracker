@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <time.h>
 #include <unistd.h>
 
 #define PORT 9000
@@ -59,7 +60,13 @@ int main() {
 
         buffer[bytes] = '\0';
 
-        char *response = handle_message(buffer); // Process message
+        time_t now = time(NULL);
+        char *time_str = ctime(&now);
+        time_str[strlen(time_str) - 1] = '\0'; // Remove trailing newline
+
+        printf("[%s] Received command: %s\n", time_str, buffer);
+
+        char *response = handle_message(buffer, now); // Process message
 
         if (response) {
             send(client_fd, response, strlen(response), 0);

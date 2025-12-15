@@ -7,9 +7,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define LARGE_RESPONSE_BUFFER 4096
 #define SMALL_RESPONSE_BUFFER 256
+
+// Helper function to create a timestamped response
+char *create_server_response(const char *command, const char *status, time_t timestamp) {
+    char *response = malloc(SMALL_RESPONSE_BUFFER);
+    char time_str[100];
+    strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", localtime(&timestamp));
+    snprintf(response, SMALL_RESPONSE_BUFFER, "[%s] ACK: %s - %s", time_str, command, status);
+    return response;
+}
 
 CommandType command_from_string(const char *cmd) { // Map string to CommandType enum
     if (strcmp(cmd, "MADE_3") == 0) { return CMD_MADE_3; }
@@ -32,20 +42,27 @@ CommandType command_from_string(const char *cmd) { // Map string to CommandType 
     return CMD_INVALID;
 }
 
-char* handle_message(char *msg) {
+char* handle_message(char *msg, time_t timestamp) {
     char *saveptr = NULL; 
     char *command_str = strtok_r(msg, " ", &saveptr); 
     char *player = strtok_r(NULL, " ", &saveptr);
+    char original_msg[256];
+    strncpy(original_msg, msg, sizeof(original_msg) -1);
 
     if (command_str == NULL) {
-        return NULL;
+        return create_server_response("NULL", "Bad command", timestamp);
     }
 
     CommandType cmd = command_from_string(command_str);
 
+    if (cmd == CMD_INVALID) {
+        fprintf(stderr, "Invalid command: %s\n", original_msg);
+        return create_server_response(original_msg, "Bad command", timestamp);
+    }
+
     if (cmd == CMD_GET_STATS) { // Handle GET_STATS command
         if (player == NULL) {
-            return NULL;
+            return create_server_response(command_str, "Player name required", timestamp);
         }
         PlayerStats *plyr = get_player_stats(player);
         if (plyr == NULL) {
@@ -83,7 +100,7 @@ char* handle_message(char *msg) {
     if (cmd == CMD_GET_GAME_LOG) {
         char *game_id_str = player;
         if (game_id_str == NULL) {
-            return NULL;
+            return create_server_response(command_str, "Game ID required", timestamp);
         }
         int game_id = atoi(game_id_str);
         
@@ -107,20 +124,20 @@ char* handle_message(char *msg) {
 
     if (cmd == CMD_START_GAME) {
         start_game();
-        return strdup("Game started.\n");
+        return create_server_response(command_str, "Game started", timestamp);
     }
 
     if (cmd == CMD_END_GAME) {
         end_game();
-        return strdup("Game ended.\n");
+        return create_server_response(command_str, "Game ended", timestamp);
     }
 
     if (player == NULL) {
-        return NULL;
+        return create_server_response(command_str, "Player name required", timestamp);
     }
 
     if (!is_game_active() && cmd != CMD_START_GAME) {
-        return NULL;
+        return create_server_response(command_str, "No game in progress", timestamp);
     }
 
     int points = 0;
@@ -128,18 +145,21 @@ char* handle_message(char *msg) {
     switch (cmd) {
         case CMD_MADE_3:
             made_three(player);
+            points = 3;
             break;
         case CMD_MISSED_3:
             missed_three(player);
             break;
         case CMD_MADE_2:
             made_two(player);
+            points = 2;
             break;
         case CMD_MISSED_2:
             missed_two(player);
             break;
         case CMD_MADE_FT:
             made_free_throw(player);
+            points = 1;
             break;
         case CMD_MISSED_FT:
             missed_free_throw(player);
@@ -163,6 +183,7 @@ char* handle_message(char *msg) {
             add_foul(player);
             break;
         default:
+            // Should not be reached due to CMD_INVALID check
             break;
     }
 
@@ -170,5 +191,5 @@ char* handle_message(char *msg) {
         db_insert_event(get_current_game_id(), player, command_str, points);
     }
     
-    return strdup("ACK\n");
+    return create_server_response(command_str, "Success", timestamp);
 }

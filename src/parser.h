@@ -1,6 +1,8 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-char* handle_message(char *msg);
+#include <time.h>
+
+char *handle_message(char *msg, time_t timestamp);
 
 #endif
