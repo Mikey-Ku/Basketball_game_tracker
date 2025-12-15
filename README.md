@@ -84,3 +84,11 @@ Connected to the server!
 - Events and game metadata are stored in `games.db` in the working directory where the server runs.
 - Each command is timestamped when it reaches the server.
 - If you want to start fresh, stop the server and delete `games.db` before restarting.
+
+
+### Resources Used
+https://zetcode.com/db/sqlitec/
+https://sqlite.org/c3ref/exec.html
+Head First C Programming Chapter 11
+https://www.geeksforgeeks.org/c/time-h-header-file-in-c-with-examples/
+https://dev.to/jeffreythecoder/how-i-built-a-simple-http-server-from-scratch-using-c-739
