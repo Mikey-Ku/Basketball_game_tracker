@@ -1,83 +1,86 @@
 # Basketball Game Tracker
 
-This is a client-server application for tracking basketball game statistics.
+A small TCP client/server written in C that records basketball play-by-play events and stores them through SQLite. The server listens on port `9000`, accepts simple text commands from the client, and keeps per-player box score totals in memory while a game is active. All events are stored so finished games can be reviewed later.
 
-## How to Build and Run
+## Features
+- Start/stop a game session and log every stat event with timestamps.
+- Per-player box score tracking in-memory for the current game.
+- SQLite-backed event log for replaying finished games and listing game history.
 
-### Prerequisites
+## Project layout
+- `src/server.c` — TCP server entry point; accepts one client and routes commands.
+- `src/client.c` — interactive CLI client that sends commands to the server.
+- `src/parser.c` — command decoding and response formatting.
+- `src/stats.c`/`stats.h` — in-memory box score calculations for the active game.
+- `src/database.c`/`database.h` — SQLite helpers for events and game metadata.
+- `src/commands.h` — enum of supported command tokens.
+- `CMakeLists.txt`, `src/CMakeLists.txt` — build configuration.
 
-- C compiler (like GCC)
-- CMake
-- Make
+## Requirements
+- C compiler (GCC/Clang)
+- CMake and Make
+- SQLite3
 
-### Building
-
-1.  Create a build directory:
-    ```bash
-    mkdir build
-    cd build
-    ```
-
-2.  Run CMake and Make:
-    ```bash
-    cmake ..
-    make
-    ```
-
-### Running the Server
-
-From the `build` directory, run the server:
+## Build
 ```bash
+mkdir -p build
+cd build
+cmake ..
+make
+```
+This produces `./src/server` and `./src/client` inside the `build` directory.
+
+## Run
+Start the server in one terminal:
+```bash
+cd build
 ./src/server
 ```
-The server will start and listen on port 9000.
 
-### Running the Client
-
-In a separate terminal, from the `build` directory, run the client:
+In another terminal, start the client and enter commands when you see the `>` prompt:
 ```bash
+cd build
 ./src/client
 ```
-The client will connect to the server, and you will see a `>` prompt.
 
-## Commands
+## Command reference
+Game flow:
+- `START_GAME` — begin a new game (resets in-memory stats, opens a DB game row).
+- `END_GAME` — close the current game (marks end time in the DB).
 
-The client accepts the following commands:
+Recording events (format: `<COMMAND> <PLAYER_NAME>`):
+- `MADE_3`, `MISSED_3`
+- `MADE_2`, `MISSED_2`
+- `MADE_FT`, `MISSED_FT`
+- `REBOUND`, `ASSIST`, `STEAL`, `BLOCK`, `TURNOVER`, `FOUL`
 
-### Game Management
+Queries:
+- `STATS <player>` — show the in-memory box score for that player in the active game.
+- `LIST_GAMES` — list finished games with IDs and start/end timestamps.
+- `GET_GAME_LOG <game_id>` — print the event log for a completed game.
 
--   `START_GAME`: Starts a new game. A new game must be started before any stats can be recorded.
--   `END_GAME`: Ends the current game.
+Session control:
+- `quit` — exit the client (server keeps running).
 
-### Stat Tracking
+## Example session
+```
+$ ./src/server
+Server is listening on port 9000...
 
-To record a stat for a player, use the following format:
-`<COMMAND> <PLAYER_NAME>`
+$ ./src/client
+Connected to the server!
+> START_GAME
+> MADE_3 Alice
+> ASSIST Bob
+> MADE_FT Alice
+> STATS Alice
+> END_GAME
+> LIST_GAMES
+> GET_GAME_LOG 1
+> quit
+```
 
-Example:
-`MADE_3 Michael`
-
-Here are the available stat commands:
--   `MADE_3`: Records a made 3-point shot.
--   `MISSED_3`: Records a missed 3-point shot.
--   `MADE_2`: Records a made 2-point shot.
--   `MISSED_2`: Records a missed 2-point shot.
--   `MADE_FT`: Records a made free throw.
--   `MISSED_FT`: Records a missed free throw.
--   `REBOUND`: Records a rebound.
--   `ASSIST`: Records an assist.
--   `STEAL`: Records a steal.
--   `BLOCK`: Records a block.
--   `TURNOVER`: Records a turnover.
--   `FOUL`: Records a foul.
-
-### Viewing Stats and Game Logs
-
--   `LIST_GAMES`: Displays a list of all completed games, with their `game_id` and timestamps.
--   `GET_GAME_LOG <game_id>`: Displays the log of all events for a specific game. Replace `<game_id>` with the ID of the game you want to view.
--   `STATS <game_id>`: Displays the full statistics for all players in a specific game. Replace `<game_id>` with the ID of the game you want to view.
--   `PLAYER_STATS <player_name>`: Displays the statistics for a specific player in the current game. Replace `<player_name>` with the name of the player you want to view.
-
-### Exiting the Client
-
--   `quit`: Disconnects from the server and exits the client.
+## Data and persistence
+- Events and game metadata are stored in `games.db` in the working directory where the server runs.
+- Each command is timestamped when it reaches the server.
+- If you want to start fresh, stop the server and delete `games.db` before restarting.
