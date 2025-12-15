@@ -8,7 +8,6 @@ typedef struct {
     char *timestamp;
     char *player;
     char *command;
-    char *team;
     int points;
 } GameEvent;
 
@@ -23,7 +22,6 @@ int db_init(const char *filename);
 void db_insert_event(int game_id,
                      const char *player,
                      const char *command,
-                     const char *team,
                      int points);
 
 int db_get_events_for_game(int game_id, GameEvent **events, int *num_events);

@@ -1,11 +1,11 @@
+#include "database.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "database.h"
 
 #define TIMESTAMP_BUFFER_SIZE 32
-
 
 static sqlite3 *db = NULL;
 
@@ -23,13 +23,10 @@ static void format_timestamp(char *buffer, size_t buffer_size) {
     time_t now = time(NULL);
     struct tm tm_now;
     localtime_r(&now, &tm_now);
-
     if (strftime(buffer, buffer_size, "%Y-%m-%d %H:%M:%S", &tm_now) == 0) {
         buffer[0] = '\0';
     }
 }
-
-
 
 int db_init(const char *filename) {
     if (sqlite3_open(filename, &db) != SQLITE_OK) {
@@ -46,14 +43,13 @@ int db_init(const char *filename) {
         "timestamp TEXT,"
         "player TEXT,"
         "command TEXT,"
-        "team TEXT,"
         "points INTEGER"
         ");";
 
     if (!exec_sql(sql)) {
         return 0;
     }
-        
+
     const char *sql_games =
         "CREATE TABLE IF NOT EXISTS games ("
         "game_id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -67,7 +63,7 @@ int db_init(const char *filename) {
     return 1;
 }
 
-void db_insert_event(int game_id, const char *player, const char *command, const char *team, int points) {
+void db_insert_event(int game_id, const char *player, const char *command, int points) {
     if (!db || game_id <= 0) {
         return;
     }
@@ -77,8 +73,8 @@ void db_insert_event(int game_id, const char *player, const char *command, const
 
     sqlite3_stmt *stmt;
     const char *sql =
-        "INSERT INTO events (game_id, timestamp, player, command, team, points) "
-        "VALUES (?, ?, ?, ?, ?, ?);";
+        "INSERT INTO events (game_id, timestamp, player, command, points) "
+        "VALUES (?, ?, ?, ?, ?);";
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
         printf("SQL prepare error: %s\n", sqlite3_errmsg(db));
@@ -89,13 +85,11 @@ void db_insert_event(int game_id, const char *player, const char *command, const
     sqlite3_bind_text(stmt, 2, timestamp, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 3, player, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 4, command, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 5, team, -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 6, points);
+    sqlite3_bind_int(stmt, 5, points);
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         printf("SQL step error: %s\n", sqlite3_errmsg(db));
     }
-
     sqlite3_finalize(stmt);
 }
 
@@ -103,15 +97,13 @@ int db_get_events_for_game(int game_id, GameEvent **events, int *num_events) {
     if (!db) {
         return 0;
     }
-
     sqlite3_stmt *stmt;
-    const char *sql = "SELECT game_id, timestamp, player, command, team, points FROM events WHERE game_id = ?;";
+    const char *sql = "SELECT game_id, timestamp, player, command, points FROM events WHERE game_id = ?;";
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
         printf("SQL prepare error: %s\n", sqlite3_errmsg(db));
         return 0;
     }
-
     sqlite3_bind_int(stmt, 1, game_id);
 
     int count = 0;
@@ -132,7 +124,6 @@ int db_get_events_for_game(int game_id, GameEvent **events, int *num_events) {
         return 0;
     }
 
-    // Ahem, sqlite3_reset is a thing.
     sqlite3_reset(stmt);
 
     int i = 0;
@@ -141,8 +132,7 @@ int db_get_events_for_game(int game_id, GameEvent **events, int *num_events) {
         (*events)[i].timestamp = strdup((const char *)sqlite3_column_text(stmt, 1));
         (*events)[i].player = strdup((const char *)sqlite3_column_text(stmt, 2));
         (*events)[i].command = strdup((const char *)sqlite3_column_text(stmt, 3));
-        (*events)[i].team = strdup((const char *)sqlite3_column_text(stmt, 4));
-        (*events)[i].points = sqlite3_column_int(stmt, 5);
+        (*events)[i].points = sqlite3_column_int(stmt, 4);
         i++;
     }
 
@@ -159,7 +149,6 @@ void db_free_events(GameEvent *events, int num_events) {
         free(events[i].timestamp);
         free(events[i].player);
         free(events[i].command);
-        free(events[i].team);
     }
     free(events);
 }
@@ -221,23 +210,19 @@ void db_free_games(Game *games, int num_games) {
     free(games);
 }
 
-
 int db_start_game() {
     if (!db) {
         return -1;
     }
-
     char timestamp[TIMESTAMP_BUFFER_SIZE];
     format_timestamp(timestamp, sizeof(timestamp));
 
     sqlite3_stmt *stmt;
     const char *sql = "INSERT INTO games (start_time) VALUES (?);";
-
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
         printf("SQL prepare error: %s\n", sqlite3_errmsg(db));
         return -1;
     }
-
     sqlite3_bind_text(stmt, 1, timestamp, -1, SQLITE_STATIC);
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
@@ -245,7 +230,6 @@ int db_start_game() {
         sqlite3_finalize(stmt);
         return -1;
     }
-
     sqlite3_finalize(stmt);
     return (int)sqlite3_last_insert_rowid(db);
 }
@@ -254,7 +238,6 @@ void db_end_game(int game_id) {
     if (!db) {
         return;
     }
-
     char timestamp[TIMESTAMP_BUFFER_SIZE];
     format_timestamp(timestamp, sizeof(timestamp));
 

@@ -1,9 +1,11 @@
 
+#include "stats.h"
+
+#include "database.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "stats.h"
-#include "database.h"
 
 #define POINTS_FOR_THREE_POINTER 3
 #define POINTS_FOR_TWO_POINTER 2
@@ -108,148 +110,144 @@ void end_game() {
     return;
 }
 
-void print_timestamp() {
-}
-
 int get_current_game_id() {
     return current_game_id;
 }
 
-static void update_shot_stats(PlayerStats *p, int points, int is_made, int is_three) {
+static void update_shot_stats(PlayerStats *plyr, int points, int is_made, int is_three) {
     if (is_made) {
-        p->points += points;
-        p->field_goals_made++;
+        plyr->points += points;
+        plyr->field_goals_made++;
         if (is_three) {
-            p->threes_made++;
+            plyr->threes_made++;
         } else {
-            p->twos_made++;
+            plyr->twos_made++;
         }
     }
-    p->field_goals_attempted++;
+    plyr->field_goals_attempted++;
     if (is_three) {
-        p->threes_attempted++;
+        plyr->threes_attempted++;
     } else {
-        p->twos_attempted++;
+        plyr->twos_attempted++;
     }
 }
 
-static void update_percentages(PlayerStats *p) {
-    if (p->field_goals_attempted > 0) {
-        p->field_goal_percentage = (float)p->field_goals_made / p->field_goals_attempted * PERCENTAGE_MULTIPLIER;
+static void update_percentages(PlayerStats *plyr) {
+    if (plyr->field_goals_attempted > 0) {
+        plyr->field_goal_percentage = (float)plyr->field_goals_made / plyr->field_goals_attempted * PERCENTAGE_MULTIPLIER;
     }
     
-    if (p->threes_attempted > 0) {
-        p->three_point_percentage = (float)p->threes_made / p->threes_attempted * PERCENTAGE_MULTIPLIER;
+    if (plyr->threes_attempted > 0) {
+        plyr->three_point_percentage = (float)plyr->threes_made / plyr->threes_attempted * PERCENTAGE_MULTIPLIER;
     }
     
-    if (p->twos_attempted > 0) {
-        p->two_point_percentage = (float)p->twos_made / p->twos_attempted * PERCENTAGE_MULTIPLIER;
+    if (plyr->twos_attempted > 0) {
+        plyr->two_point_percentage = (float)plyr->twos_made / plyr->twos_attempted * PERCENTAGE_MULTIPLIER;
     }
     
-    if (p->free_throws_attempted > 0) {
-        p->free_throw_percentage = (float)p->free_throws_made / p->free_throws_attempted * PERCENTAGE_MULTIPLIER;
+    if (plyr->free_throws_attempted > 0) {
+        plyr->free_throw_percentage = (float)plyr->free_throws_made / plyr->free_throws_attempted * PERCENTAGE_MULTIPLIER;
     }
 }
 
 
 void made_three(const char *player) {
-    PlayerStats *p = get_player(player);
-    if (!p) { return; }
-    update_shot_stats(p, POINTS_FOR_THREE_POINTER, 1, 1);
+    PlayerStats *plyr = get_player(player);
+    if (!plyr) { return; }
+    update_shot_stats(plyr, POINTS_FOR_THREE_POINTER, 1, 1);
 }
 
 void missed_three(const char *player) {
-    PlayerStats *p = get_player(player);
-    if (!p) { return; }
-    update_shot_stats(p, 0, 0, 1);
+    PlayerStats *plyr = get_player(player);
+    if (!plyr) { return; }
+    update_shot_stats(plyr, 0, 0, 1);
 }
 
 void made_two(const char *player) {
-    PlayerStats *p = get_player(player);
-    if (!p) { return; }
-    update_shot_stats(p, POINTS_FOR_TWO_POINTER, 1, 0);
+    PlayerStats *plyr = get_player(player);
+    if (!plyr) { return; }
+    update_shot_stats(plyr, POINTS_FOR_TWO_POINTER, 1, 0);
 }
 
 void missed_two(const char *player) {
-    PlayerStats *p = get_player(player);
-    if (!p) { return; }
-    update_shot_stats(p, 0, 0, 0);
+    PlayerStats *plyr = get_player(player);
+    if (!plyr) { return; }
+    update_shot_stats(plyr, 0, 0, 0);
 }
 
-static void update_free_throw_stats(PlayerStats *p, int is_made) {
+static void update_free_throw_stats(PlayerStats *plyr, int is_made) {
     if (is_made) {
-        p->points += POINTS_FOR_FREE_THROW;
-        p->free_throws_made++;
+        plyr->points += POINTS_FOR_FREE_THROW;
+        plyr->free_throws_made++;
     }
-    p->free_throws_attempted++;
+    plyr->free_throws_attempted++;
 }
 
 void made_free_throw(const char *player) {
-    PlayerStats *p = get_player(player);
-    if (!p) { return; }
-    update_free_throw_stats(p, 1);
+    PlayerStats *plyr = get_player(player);
+    if (!plyr) { return; }
+    update_free_throw_stats(plyr, 1);
 }
 
 void missed_free_throw(const char *player) {
-    PlayerStats *p = get_player(player);
-    if (!p) { return; }
-    update_free_throw_stats(p, 0);
+    PlayerStats *plyr = get_player(player);
+    if (!plyr) { return; }
+    update_free_throw_stats(plyr, 0);
 }
 
 void add_rebound(const char *player) {
-    PlayerStats *p = get_player(player);
-    if (!p) { return; }
-    p->rebounds += 1;
+    PlayerStats *plyr = get_player(player);
+    if (!plyr) { return; }
+    plyr->rebounds += 1;
 }
 
 void add_assist(const char *player) {
-    PlayerStats *p = get_player(player);
-    if (!p) { return; }
-    p->assists += 1;
+    PlayerStats *plyr = get_player(player);
+    if (!plyr) { return; }
+    plyr->assists += 1;
 }
 
 void add_steal(const char *player) {
-    PlayerStats *p = get_player(player);
-    if (!p) { return; }
-    p->steals += 1;
+    PlayerStats *plyr = get_player(player);
+    if (!plyr) { return; }
+    plyr->steals += 1;
 }
 
 void add_block(const char *player) {
-    PlayerStats *p = get_player(player);
-    if (!p) { return; }
-    p->blocks += 1;
+    PlayerStats *plyr = get_player(player);
+    if (!plyr) { return; }
+    plyr->blocks += 1;
 }
 
 void add_turnover(const char *player) {
-    PlayerStats *p = get_player(player);
-    if (!p) { return; }
-    p->turnovers += 1;
+    PlayerStats *plyr = get_player(player);
+    if (!plyr) { return; }
+    plyr->turnovers += 1;
 }
 
 void add_foul(const char *player) {
-    PlayerStats *p = get_player(player);
-    if (!p) { return; }
-    p->fouls += 1;
+    PlayerStats *plyr = get_player(player);
+    if (!plyr) { return; }
+    plyr->fouls += 1;
 }
 
 void print_all_stats(char *buffer, size_t buffer_size) {
     char temp_buffer[LARGE_BUFFER_SIZE] = "";
     int offset = 0;
     for (int i = 0; i < player_count; i++) {
-        PlayerStats *p = &players[i];
+        PlayerStats *plyr = &players[i];
         int written = snprintf(temp_buffer + offset, sizeof(temp_buffer) - offset,
             "\n%s:\n  Points: %d\n  Field Goals: %d/%d (%.1f%%)\n  3-Pointers: %d/%d (%.1f%%)\n  2-Pointers: %d/%d (%.1f%%)\n  Free Throws: %d/%d (%.1f%%)\n  Rebounds: %d | Assists: %d | Steals: %d | Blocks: %d | Turnovers: %d | Fouls: %d\n",
-            p->name, p->points, p->field_goals_made, p->field_goals_attempted, p->field_goal_percentage,
-            p->threes_made, p->threes_attempted, p->three_point_percentage, p->twos_made, p->twos_attempted, p->two_point_percentage,
-            p->free_throws_made, p->free_throws_attempted, p->free_throw_percentage, p->rebounds, p->assists, p->steals,
-            p->blocks, p->turnovers, p->fouls);
+            plyr->name, plyr->points, plyr->field_goals_made, plyr->field_goals_attempted, plyr->field_goal_percentage,
+            plyr->threes_made, plyr->threes_attempted, plyr->three_point_percentage, plyr->twos_made, plyr->twos_attempted, plyr->two_point_percentage,
+            plyr->free_throws_made, plyr->free_throws_attempted, plyr->free_throw_percentage, plyr->rebounds, plyr->assists, plyr->steals,
+            plyr->blocks, plyr->turnovers, plyr->fouls);
         if (written > 0) {
             offset += written;
         }
     }
     snprintf(buffer, buffer_size, "%s", temp_buffer);
 }
-
 
 static PlayerStats* get_player_from_array(PlayerStats *players_array, int *player_count_ptr, const char *name) {
     for (int i = 0; i < *player_count_ptr; i++) {
@@ -288,34 +286,34 @@ static PlayerStats* get_player_from_array(PlayerStats *players_array, int *playe
 
 static void update_stats_from_events(PlayerStats *players_array, int *player_count_ptr, GameEvent *events, int num_events) {
     for (int i = 0; i < num_events; i++) {
-        GameEvent *e = &events[i];
-        PlayerStats *p = get_player_from_array(players_array, player_count_ptr, e->player);
-        if (!p) { continue; }
+        GameEvent *event = &events[i];
+        PlayerStats *plyr = get_player_from_array(players_array, player_count_ptr, event->player);
+        if (!plyr) { continue; }
 
-        if (strcmp(e->command, "MADE_3") == 0) {
-            update_shot_stats(p, POINTS_FOR_THREE_POINTER, 1, 1);
-        } else if (strcmp(e->command, "MISSED_3") == 0) {
-            update_shot_stats(p, 0, 0, 1);
-        } else if (strcmp(e->command, "MADE_2") == 0) {
-            update_shot_stats(p, POINTS_FOR_TWO_POINTER, 1, 0);
-        } else if (strcmp(e->command, "MISSED_2") == 0) {
-            update_shot_stats(p, 0, 0, 0);
-        } else if (strcmp(e->command, "MADE_FT") == 0) {
-            update_free_throw_stats(p, 1);
-        } else if (strcmp(e->command, "MISSED_FT") == 0) {
-            update_free_throw_stats(p, 0);
-        } else if (strcmp(e->command, "REBOUND") == 0) {
-            p->rebounds += 1;
-        } else if (strcmp(e->command, "ASSIST") == 0) {
-            p->assists += 1;
-        } else if (strcmp(e->command, "STEAL") == 0) {
-            p->steals += 1;
-        } else if (strcmp(e->command, "BLOCK") == 0) {
-            p->blocks += 1;
-        } else if (strcmp(e->command, "TURNOVER") == 0) {
-            p->turnovers += 1;
-        } else if (strcmp(e->command, "FOUL") == 0) {
-            p->fouls += 1;
+        if (strcmp(event->command, "MADE_3") == 0) {
+            update_shot_stats(plyr, POINTS_FOR_THREE_POINTER, 1, 1);
+        } else if (strcmp(event->command, "MISSED_3") == 0) {
+            update_shot_stats(plyr, 0, 0, 1);
+        } else if (strcmp(event->command, "MADE_2") == 0) {
+            update_shot_stats(plyr, POINTS_FOR_TWO_POINTER, 1, 0);
+        } else if (strcmp(event->command, "MISSED_2") == 0) {
+            update_shot_stats(plyr, 0, 0, 0);
+        } else if (strcmp(event->command, "MADE_FT") == 0) {
+            update_free_throw_stats(plyr, 1);
+        } else if (strcmp(event->command, "MISSED_FT") == 0) {
+            update_free_throw_stats(plyr, 0);
+        } else if (strcmp(event->command, "REBOUND") == 0) {
+            plyr->rebounds += 1;
+        } else if (strcmp(event->command, "ASSIST") == 0) {
+            plyr->assists += 1;
+        } else if (strcmp(event->command, "STEAL") == 0) {
+            plyr->steals += 1;
+        } else if (strcmp(event->command, "BLOCK") == 0) {
+            plyr->blocks += 1;
+        } else if (strcmp(event->command, "TURNOVER") == 0) {
+            plyr->turnovers += 1;
+        } else if (strcmp(event->command, "FOUL") == 0) {
+            plyr->fouls += 1;
         }
     }
 
@@ -351,13 +349,13 @@ char* get_game_stats(int game_id) {
     int offset = 0;
 
     for (int i = 0; i < local_player_count; i++) {
-        PlayerStats *p = &local_players[i];
+        PlayerStats *plyr = &local_players[i];
         int written = snprintf(response + offset, LARGE_BUFFER_SIZE - offset,
             "\n%s:\n  Points: %d\n  Field Goals: %d/%d (%.1f%%)\n  3-Pointers: %d/%d (%.1f%%)\n  2-Pointers: %d/%d (%.1f%%)\n  Free Throws: %d/%d (%.1f%%)\n  Rebounds: %d | Assists: %d | Steals: %d | Blocks: %d | Turnovers: %d | Fouls: %d\n",
-            p->name, p->points, p->field_goals_made, p->field_goals_attempted, p->field_goal_percentage,
-            p->threes_made, p->threes_attempted, p->three_point_percentage, p->twos_made, p->twos_attempted, p->two_point_percentage,
-            p->free_throws_made, p->free_throws_attempted, p->free_throw_percentage, p->rebounds, p->assists, p->steals,
-            p->blocks, p->turnovers, p->fouls);
+            plyr->name, plyr->points, plyr->field_goals_made, plyr->field_goals_attempted, plyr->field_goal_percentage,
+            plyr->threes_made, plyr->threes_attempted, plyr->three_point_percentage, plyr->twos_made, plyr->twos_attempted, plyr->two_point_percentage,
+            plyr->free_throws_made, plyr->free_throws_attempted, plyr->free_throw_percentage, plyr->rebounds, plyr->assists, plyr->steals,
+            plyr->blocks, plyr->turnovers, plyr->fouls);
         if (written > 0) {
             offset += written;
         }
