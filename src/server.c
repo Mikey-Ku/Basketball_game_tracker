@@ -65,10 +65,12 @@ int main() {
         time_str[strlen(time_str) - 1] = '\0'; // Remove trailing newline
 
         printf("[%s] Received command: %s\n", time_str, buffer);
+        fflush(stdout);
 
         char *response = handle_message(buffer, now); // Process message
 
-        if (response) {
+            printf("[%s] Sent response: %s\n", time_str, response);
+            fflush(stdout);
             send(client_fd, response, strlen(response), 0);
             free(response);
         }

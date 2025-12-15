@@ -36,7 +36,10 @@ int main() {
         if (strcmp(message, "quit") == 0) {
             break;
         }
-        send(sock, message, strlen(message), 0);
+        if (send(sock, message, strlen(message), 0) < 0) {
+            perror("Send failed");
+            continue;
+        }
 
         char buffer[BUFFER_SIZE_RECEIVE];
         int bytes = recv(sock, buffer, sizeof(buffer) - 1, 0);

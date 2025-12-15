@@ -50,14 +50,14 @@ char* handle_message(char *msg, time_t timestamp) {
     strncpy(original_msg, msg, sizeof(original_msg) -1);
 
     if (command_str == NULL) {
-        return create_server_response("NULL", "Bad command", timestamp);
+        return create_server_response("NULL", "No command provided", timestamp);
     }
 
     CommandType cmd = command_from_string(command_str);
 
     if (cmd == CMD_INVALID) {
         fprintf(stderr, "Invalid command: %s\n", original_msg);
-        return create_server_response(original_msg, "Bad command", timestamp);
+        return create_server_response(original_msg, "Unknown command", timestamp);
     }
 
     if (cmd == CMD_GET_STATS) { // Handle GET_STATS command
